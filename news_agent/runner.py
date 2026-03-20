@@ -75,11 +75,30 @@ def run(settings: Settings) -> int:
 
         if settings.dry_run:
             logger.info("[DRY RUN] Post gerado:\n%s\n", draft.text)
-        else:
-            tweet_id = publisher.publish(text=draft.text, image_url=article.image_url) if publisher else ""
-            logger.info("Post publicado no X com id=%s", tweet_id)
+            store.add_link(article.link)
+            continue
 
-        store.add_link(article.link)
+        try:
+            tweet_id = publisher.publish(text=draft.text, image_url=article.image_url) if publisher else ""
+        except Exception as exc:
+            response = getattr(exc, "response", None)
+            status_code = getattr(response, "status_code", None)
+
+            if status_code == 402:
+                logger.error(
+                    "Publicacao bloqueada no X (HTTP 402 - sem creditos na conta). "
+                    "Encerrando sem erro para nao quebrar o workflow."
+                )
+                return 0
+
+            logger.exception("Falha ao publicar no X para o link %s", article.link)
+            continue
+
+        if tweet_id:
+            logger.info("Post publicado no X com id=%s", tweet_id)
+            store.add_link(article.link)
+        else:
+            logger.warning("X nao retornou id do post; link nao sera marcado como publicado.")
 
     return 0
 
