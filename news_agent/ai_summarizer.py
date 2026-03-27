@@ -67,7 +67,10 @@ class AISummarizer:
 
     @staticmethod
     def _fallback_summary(topic: str, article: Article) -> str:
-        if article.summary:
-            return article.summary[:170].strip()
-        return f"Atualização sobre {topic}: {article.title[:140].strip()}"
+        # Evita usar o resumo bruto do RSS, que muitas vezes vem em inglês.
+        # Assim garantimos um texto-base em português mesmo sem IA.
+        clean_title = " ".join((article.title or "").split())
+        clean_topic = " ".join((topic or "").split())
+        summary = f"Atualizacao sobre {clean_topic}: {clean_title}".strip()
+        return summary[:170].strip()
 
