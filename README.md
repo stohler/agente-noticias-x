@@ -101,7 +101,7 @@ No boot de cada cloud agent, o setup:
 3. executa automaticamente:
 
 ```bash
-python3 -m pip install ./stohler-news-agent
+python3 -m pip install /workspace
 ```
 
 Assim, o projeto já sobe pronto sem setup manual extra.
